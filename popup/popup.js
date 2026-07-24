@@ -399,7 +399,7 @@ function parseResume(text) {
   // The (?<![@\w\.\-]) lookbehind ensures we don't accidentally extract "gmail.com" out of "user@gmail.com".
   // (?:[\w\-]+\.)+ ensures we capture all subdomains (e.g. autocodeai.netlify.app instead of autocodeai.net)
   // \b ensures we don't stop mid-word (e.g. matching "in" out of "instagram").
-  const urlRegex = /(?<![@\w\.\-])(?:https?:\/\/|www\.)?(?:[\w\-]+\.)+(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai)\b(?:\/[^\s)\]>"']*)?/gi;
+  const urlRegex = /(?<![@\w\.\-])(?:https?:\/\/|www\.)?(?:[\w\-]+\.)+(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai|yt|tv|online|cloud|space|link)\b(?:\/[^\s)\]>"']*)?/gi;
   const rawUrls = cleanText.match(urlRegex) || [];
   
   // Split URLs if they got concatenated together (e.g. url1.com/https://url2.com/)
