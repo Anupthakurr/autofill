@@ -395,16 +395,27 @@ function parseResume(text) {
   }
 
   // ── Portfolio / Projects ────────────────────────────────
-  const rawUrls = cleanText.match(/https?:\/\/[^\s\)\]>"']+/g) || [];
+  // Catch both https:// URLs and common naked domains (e.g., janedoe.dev)
+  const urlRegex = /(?:https?:\/\/|www\.)?[\w\-]+\.(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai)(?:\/[\w\-./?=&%]*[a-zA-Z0-9/])?/gi;
+  const rawUrls = cleanText.match(urlRegex) || [];
+  
   // Split URLs if they got concatenated together (e.g. url1.com/https://url2.com/)
   const allUrls = rawUrls.flatMap(url => url.split(/(?=https?:\/\/)/i));
   
-  const skipDomains = /linkedin|github|twitter|x\.com|instagram|facebook|youtube|google|drive\.google|dropbox|onedrive|stackoverflow|behance|dribbble|medium|leetcode|codeforces|codechef/i;
+  // Only skip if the core domain matches one of the known social/platform domains.
+  // This prevents skipping valid projects like "leetcode-clone.vercel.app".
+  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|github\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com)/i;
   
   // Find all URLs not belonging to standard platforms
   const genericUrls = allUrls
     .filter(u => !skipDomains.test(u))
-    .map(u => u.replace(/[)\]>'"]+$/, ''));
+    .map(u => {
+      let cleaned = u.replace(/[)\]>'"]+$/, '');
+      if (!/^https?:\/\//i.test(cleaned)) {
+        cleaned = `https://${cleaned}`;
+      }
+      return cleaned;
+    });
     
   // Deduplicate URLs
   const uniqueUrls = [...new Set(genericUrls)];
