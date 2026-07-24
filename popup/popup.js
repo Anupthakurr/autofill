@@ -395,16 +395,16 @@ function parseResume(text) {
   }
 
   // ── Portfolio / Projects ────────────────────────────────
-  // Catch both https:// URLs and common naked domains (e.g., janedoe.dev)
-  const urlRegex = /(?:https?:\/\/|www\.)?[\w\-]+\.(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai)(?:\/[\w\-./?=&%]*[a-zA-Z0-9/])?/gi;
+  // Catch both https:// URLs and common naked domains (e.g., janedoe.dev).
+  // The (?<![@\w\.\-]) lookbehind ensures we don't accidentally extract "gmail.com" out of "user@gmail.com".
+  const urlRegex = /(?<![@\w\.\-])(?:https?:\/\/|www\.)?[\w\-]+\.(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai)(?:\/[\w\-./?=&%#]*[a-zA-Z0-9/])?/gi;
   const rawUrls = cleanText.match(urlRegex) || [];
   
   // Split URLs if they got concatenated together (e.g. url1.com/https://url2.com/)
   const allUrls = rawUrls.flatMap(url => url.split(/(?=https?:\/\/)/i));
   
   // Only skip if the core domain matches one of the known social/platform domains.
-  // This prevents skipping valid projects like "leetcode-clone.vercel.app".
-  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|github\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com)/i;
+  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|github\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com|gmail\.com|yahoo\.com|outlook\.com|hotmail\.com)/i;
   
   // Find all URLs not belonging to standard platforms
   const genericUrls = allUrls
