@@ -426,8 +426,33 @@ function parseResume(text) {
       return u.toLowerCase() !== githubProfile;
     });
     
-  // Deduplicate URLs
-  let uniqueUrls = [...new Set(genericUrls)];
+    // Deduplicate URLs (Smart deduplication to merge similar URLs like AutoCode.AI and autocodeai.netlify.app)
+  let uniqueUrls = [];
+  for (const url of genericUrls) {
+    const stripped = url.replace(/^https?:\/\/(www\.)?/i, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+    
+    let isDuplicate = false;
+    for (let i = 0; i < uniqueUrls.length; i++) {
+      const existingStripped = uniqueUrls[i].replace(/^https?:\/\/(www\.)?/i, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+      // If one is a substantial substring of another, treat as same project
+      if (stripped.length > 5 && existingStripped.length > 5) {
+        if (stripped.includes(existingStripped)) {
+          // New URL is longer/more detailed, replace the existing one
+          uniqueUrls[i] = url;
+          isDuplicate = true;
+          break;
+        } else if (existingStripped.includes(stripped)) {
+          // Existing URL is longer/more detailed, ignore new one
+          isDuplicate = true;
+          break;
+        }
+      }
+    }
+    
+    if (!isDuplicate && !uniqueUrls.includes(url)) {
+      uniqueUrls.push(url);
+    }
+  }
 
   // Try to find the portfolio URL smartly (e.g. contains portfolio, github.io, or .me)
   const portfolioIndex = uniqueUrls.findIndex(u => /portfolio|github\.io|\.me\b/i.test(u));
