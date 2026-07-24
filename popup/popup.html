@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobFill — Profile</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────── -->
+  <header class="jf-header">
+    <div class="jf-logo">
+      <div class="jf-logo-icon">✨</div>
+      <div class="jf-logo-text">
+        <h1>JobFill</h1>
+        <p>Smart Auto-Fill for Job Applications</p>
+      </div>
+    </div>
+    <button class="jf-fill-now-btn" id="fillNowBtn" title="Save &amp; fill the current tab's form">
+      ⚡ Fill Now
+    </button>
+  </header>
+
+  <!-- ── Tab Navigation ─────────────────────────────────────── -->
+  <nav class="jf-tabs" role="tablist" aria-label="Profile sections">
+    <button class="jf-tab active" data-tab="personal"     role="tab" aria-selected="true">👤 Personal</button>
+    <button class="jf-tab"        data-tab="links"        role="tab">🔗 Links</button>
+    <button class="jf-tab"        data-tab="professional" role="tab">💼 Work</button>
+    <button class="jf-tab"        data-tab="education"    role="tab">🎓 Education</button>
+    <button class="jf-tab"        data-tab="skills"       role="tab">🛠 Skills</button>
+    <button class="jf-tab"        data-tab="resume"       role="tab">📄 Resume</button>
+  </nav>
+
+  <!-- ── Tab Content ────────────────────────────────────────── -->
+  <main class="jf-tab-content">
+
+    <!-- Personal -->
+    <section class="jf-pane active" id="tab-personal" role="tabpanel">
+      <div class="jf-grid-2">
+        <div class="jf-field">
+          <label for="firstName">First Name</label>
+          <input type="text" id="firstName" placeholder="Jane" autocomplete="off" />
+        </div>
+        <div class="jf-field">
+          <label for="lastName">Last Name</label>
+          <input type="text" id="lastName" placeholder="Doe" autocomplete="off" />
+        </div>
+      </div>
+      <div class="jf-field">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" placeholder="jane.doe@gmail.com" autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" placeholder="+1 (555) 000-0000" autocomplete="off" />
+      </div>
+      <div class="jf-grid-2">
+        <div class="jf-field">
+          <label for="city">City</label>
+          <input type="text" id="city" placeholder="San Francisco" autocomplete="off" />
+        </div>
+        <div class="jf-field">
+          <label for="state">State / Province</label>
+          <input type="text" id="state" placeholder="CA" autocomplete="off" />
+        </div>
+      </div>
+      <div class="jf-grid-2">
+        <div class="jf-field">
+          <label for="country">Country</label>
+          <input type="text" id="country" placeholder="United States" autocomplete="off" />
+        </div>
+        <div class="jf-field">
+          <label for="zipCode">ZIP / Postal Code</label>
+          <input type="text" id="zipCode" placeholder="94102" autocomplete="off" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Links -->
+    <section class="jf-pane" id="tab-links" role="tabpanel">
+      <div class="jf-field">
+        <label for="linkedin"><span class="jf-link-badge jf-li">in</span> LinkedIn URL</label>
+        <input type="url" id="linkedin" placeholder="https://linkedin.com/in/janedoe" autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="github"><span class="jf-link-badge jf-gh">⌥</span> GitHub URL</label>
+        <input type="url" id="github" placeholder="https://github.com/janedoe" autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="portfolio"><span class="jf-link-badge jf-web">🌐</span> Portfolio / Personal Site</label>
+        <input type="url" id="portfolio" placeholder="https://janedoe.dev" autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="resumeUrl"><span class="jf-link-badge jf-doc">📄</span> Resume Link (Drive / Dropbox)</label>
+        <input type="url" id="resumeUrl" placeholder="https://drive.google.com/file/d/..." autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="twitter"><span class="jf-link-badge jf-tw">𝕏</span> Twitter / X URL</label>
+        <input type="url" id="twitter" placeholder="https://twitter.com/janedoe" autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="stackoverflow"><span class="jf-link-badge jf-so">SO</span> Stack Overflow</label>
+        <input type="url" id="stackoverflow" placeholder="https://stackoverflow.com/users/123456/janedoe" autocomplete="off" />
+      </div>
+      <div class="jf-grid-2">
+        <div class="jf-field">
+          <label for="behance"><span class="jf-link-badge jf-be">Be</span> Behance</label>
+          <input type="url" id="behance" placeholder="https://behance.net/janedoe" autocomplete="off" />
+        </div>
+        <div class="jf-field">
+          <label for="dribbble"><span class="jf-link-badge jf-dr">🏀</span> Dribbble</label>
+          <input type="url" id="dribbble" placeholder="https://dribbble.com/janedoe" autocomplete="off" />
+        </div>
+      </div>
+      <div class="jf-field">
+        <label for="medium"><span class="jf-link-badge jf-med">M</span> Medium / Blog</label>
+        <input type="url" id="medium" placeholder="https://medium.com/@janedoe" autocomplete="off" />
+      </div>
+    </section>
+
+    <!-- Professional -->
+    <section class="jf-pane" id="tab-professional" role="tabpanel">
+      <div class="jf-field">
+        <label for="currentRole">Current Job Title</label>
+        <input type="text" id="currentRole" placeholder="Software Engineer" autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="desiredRole">Desired Role / Position Applying For</label>
+        <input type="text" id="desiredRole" placeholder="Senior Frontend Developer" autocomplete="off" />
+      </div>
+      <div class="jf-grid-2">
+        <div class="jf-field">
+          <label for="yearsOfExperience">Years of Experience</label>
+          <input type="number" id="yearsOfExperience" placeholder="3" min="0" max="50" autocomplete="off" />
+        </div>
+        <div class="jf-field">
+          <label for="salary">Expected Salary</label>
+          <input type="text" id="salary" placeholder="$80,000 / year" autocomplete="off" />
+        </div>
+      </div>
+      <div class="jf-field">
+        <label for="workAuthorization">Work Authorization / Visa Status</label>
+        <select id="workAuthorization">
+          <option value="">Select authorization...</option>
+          <option value="US Citizen">US Citizen</option>
+          <option value="Green Card Holder">Green Card Holder</option>
+          <option value="H1-B Visa">H1-B Visa</option>
+          <option value="OPT / CPT">OPT / CPT</option>
+          <option value="TN Visa">TN Visa</option>
+          <option value="Authorized to work in US">Authorized to work in US</option>
+          <option value="Indian Citizen">Indian Citizen</option>
+          <option value="UK Citizen / Settled Status">UK Citizen / Settled Status</option>
+          <option value="EU Citizen">EU Citizen</option>
+          <option value="Work Permit">Work Permit</option>
+          <option value="Student Visa">Student Visa</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="jf-field">
+        <label for="requireSponsorship">Require Visa Sponsorship?</label>
+        <select id="requireSponsorship">
+          <option value="">Select...</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+      </div>
+      <div class="jf-field">
+        <label for="summary">Professional Summary</label>
+        <textarea id="summary" rows="4" placeholder="Brief summary of your background, key skills, and career goals..."></textarea>
+      </div>
+    </section>
+
+    <!-- Education -->
+    <section class="jf-pane" id="tab-education" role="tabpanel">
+      <div class="jf-field">
+        <label for="degree">Highest Degree</label>
+        <select id="degree">
+          <option value="">Select degree...</option>
+          <option value="High School Diploma">High School Diploma / GED</option>
+          <option value="Associate's Degree">Associate's Degree</option>
+          <option value="Bachelor's Degree">Bachelor's Degree (B.S. / B.A.)</option>
+          <option value="B.Tech">B.Tech / B.E.</option>
+          <option value="Master's Degree">Master's Degree (M.S. / M.A.)</option>
+          <option value="M.Tech">M.Tech / M.E.</option>
+          <option value="MBA">MBA</option>
+          <option value="Ph.D.">Ph.D. / Doctorate</option>
+          <option value="M.D.">M.D.</option>
+          <option value="J.D.">J.D.</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="jf-field">
+        <label for="institution">University / Institution</label>
+        <input type="text" id="institution" placeholder="MIT, Stanford, IIT Bombay..." autocomplete="off" />
+      </div>
+      <div class="jf-field">
+        <label for="fieldOfStudy">Field of Study / Major</label>
+        <input type="text" id="fieldOfStudy" placeholder="Computer Science" autocomplete="off" />
+      </div>
+      <div class="jf-grid-2">
+        <div class="jf-field">
+          <label for="graduationYear">Graduation Year</label>
+          <input type="number" id="graduationYear" placeholder="2024" min="1950" max="2035" autocomplete="off" />
+        </div>
+        <div class="jf-field">
+          <label for="gpa">GPA / CGPA</label>
+          <input type="text" id="gpa" placeholder="3.8 or 9.2/10" autocomplete="off" />
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills -->
+    <section class="jf-pane" id="tab-skills" role="tabpanel">
+      <div class="jf-field">
+        <label>Technical Skills</label>
+        <p class="jf-hint">Press <kbd>Enter</kbd> or <kbd>,</kbd> to add · <kbd>Backspace</kbd> to remove last</p>
+        <div class="jf-skills-box" id="skillsBox">
+          <div class="jf-tags" id="skillsTags"></div>
+          <input type="text" id="skillInput" placeholder="Type a skill and press Enter..." autocomplete="off" />
+        </div>
+      </div>
+      <div class="jf-suggestions">
+        <p class="jf-suggestions-label">Quick Add</p>
+        <div class="jf-chips" id="suggestionChips"></div>
+      </div>
+    </section>
+
+    <!-- Resume -->
+    <section class="jf-pane" id="tab-resume" role="tabpanel">
+      <!-- Parser -->
+      <div class="jf-parser-card">
+        <div class="jf-parser-header">
+          <span class="jf-parser-icon">🔍</span>
+          <div>
+            <strong>Resume Parser</strong>
+            <p>Paste your resume text to auto-populate all fields</p>
+          </div>
+        </div>
+        <textarea
+          id="resumeText"
+          rows="7"
+          placeholder="Paste your resume text here…&#10;&#10;Tip: Open your PDF, press Ctrl+A then Ctrl+C, then paste here."
+        ></textarea>
+        <button class="jf-parse-btn" id="parseResumeBtn">
+          <span id="parseBtnIcon">🔍</span>
+          <span id="parseBtnText">Parse Resume &amp; Extract Data</span>
+        </button>
+        <div class="jf-parse-result" id="parseResult"></div>
+      </div>
+
+      <div class="jf-divider"></div>
+
+      <!-- Cover Letter -->
+      <div class="jf-field">
+        <label for="coverLetter">Default Cover Letter</label>
+        <p class="jf-hint">Auto-filled in "cover letter" and "message" fields</p>
+        <textarea id="coverLetter" rows="6" placeholder="Dear Hiring Manager,&#10;&#10;I am thrilled to apply for..."></textarea>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer class="jf-footer">
+    <span class="jf-status" id="statusMsg"></span>
+    <button class="jf-save-btn" id="saveBtn">💾 Save Profile</button>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>
