@@ -322,9 +322,10 @@ html, body {
 .jf-doc { background: #1a73e8; color: #fff; }
 .jf-tw  { background: #000; color: #fff; }
 .jf-so  { background: #f48024; color: #fff; }
-.jf-be  { background: #053eff; color: #fff; font-size: 8px; }
-.jf-dr  { background: #ea4c89; color: #fff; font-size: 10px; }
-.jf-med { background: #000; color: #fff; font-style: italic; }
+.jf-lc  { background: #ffa116; color: #000; }
+.jf-cf  { background: #1f8acb; color: #fff; }
+.jf-cc  { background: #5b4638; color: #fff; }
+.jf-proj{ background: var(--bg2); color: var(--pri-light); font-size: 11px; }
 
 /* ── Skills Tab ──────────────────────────────────────────── */
 

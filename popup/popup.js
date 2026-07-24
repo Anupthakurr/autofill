@@ -23,11 +23,12 @@ const DEFAULT_PROFILE = {
   github:             '',
   portfolio:          '',
   resumeUrl:          '',
-  twitter:            '',
-  stackoverflow:      '',
-  behance:            '',
-  dribbble:           '',
-  medium:             '',
+  leetcode:           '',
+  codeforces:         '',
+  codechef:           '',
+  project1:           '',
+  project2:           '',
+  project3:           '',
   // Professional
   currentRole:        '',
   desiredRole:        '',
@@ -363,39 +364,25 @@ function parseResume(text) {
     notes.push(`⚫ GitHub: github.com/${githubM[1]}`);
   }
 
-  // ── Twitter / X ────────────────────────────────────────
-  const twitterM = cleanText.match(/(?:twitter\.com\/|x\.com\/)([\w]+)/i);
-  if (twitterM && !['home','explore','search','login','i'].includes(twitterM[1].toLowerCase())) {
-    extracted.twitter = `https://twitter.com/${twitterM[1]}`;
-    notes.push(`🐦 Twitter: @${twitterM[1]}`);
+  // ── LeetCode ───────────────────────────────────────────
+  const leetcodeM = cleanText.match(/leetcode\.com\/(?:u\/)?([\w\-]+)/i);
+  if (leetcodeM) {
+    extracted.leetcode = `https://leetcode.com/u/${leetcodeM[1]}`;
+    notes.push(`🟠 LeetCode: leetcode.com/u/${leetcodeM[1]}`);
   }
 
-  // ── Stack Overflow ─────────────────────────────────────
-  const soM = cleanText.match(/stackoverflow\.com\/users\/([\d]+(?:\/[\w\-]+)?)/i);
-  if (soM) {
-    extracted.stackoverflow = `https://stackoverflow.com/users/${soM[1]}`;
-    notes.push(`🟠 Stack Overflow found`);
+  // ── Codeforces ─────────────────────────────────────────
+  const codeforcesM = cleanText.match(/codeforces\.com\/profile\/([\w\-]+)/i);
+  if (codeforcesM) {
+    extracted.codeforces = `https://codeforces.com/profile/${codeforcesM[1]}`;
+    notes.push(`🔵 Codeforces: codeforces.com/profile/${codeforcesM[1]}`);
   }
 
-  // ── Behance ────────────────────────────────────────────
-  const behanceM = cleanText.match(/behance\.net\/([\w\-]+)/i);
-  if (behanceM) {
-    extracted.behance = `https://behance.net/${behanceM[1]}`;
-    notes.push(`🔷 Behance: behance.net/${behanceM[1]}`);
-  }
-
-  // ── Dribbble ───────────────────────────────────────────
-  const dribbbleM = cleanText.match(/dribbble\.com\/([\w\-]+)/i);
-  if (dribbbleM) {
-    extracted.dribbble = `https://dribbble.com/${dribbbleM[1]}`;
-    notes.push(`🎀 Dribbble: dribbble.com/${dribbbleM[1]}`);
-  }
-
-  // ── Medium / Blog ──────────────────────────────────────
-  const mediumM = cleanText.match(/medium\.com\/@?([\w\-]+)/i);
-  if (mediumM) {
-    extracted.medium = `https://medium.com/@${mediumM[1]}`;
-    notes.push(`✍️ Medium: @${mediumM[1]}`);
+  // ── CodeChef ───────────────────────────────────────────
+  const codechefM = cleanText.match(/codechef\.com\/users\/([\w\-]+)/i);
+  if (codechefM) {
+    extracted.codechef = `https://codechef.com/users/${codechefM[1]}`;
+    notes.push(`🟤 CodeChef: codechef.com/users/${codechefM[1]}`);
   }
 
   // ── Resume / Document link (Google Drive, Dropbox, OneDrive, etc.) ──
@@ -407,13 +394,33 @@ function parseResume(text) {
     notes.push(`📎 Resume link: ${extracted.resumeUrl.slice(0, 50)}…`);
   }
 
-  // ── Portfolio / Personal Website ────────────────────────
+  // ── Portfolio / Projects ────────────────────────────────
   const allUrls = cleanText.match(/https?:\/\/[\w\-]+(\.[\w\-]+)+[^\s\)\]>"']*/g) || [];
-  const skipDomains = /linkedin|github|twitter|x\.com|instagram|facebook|youtube|google|drive\.google|dropbox|onedrive|stackoverflow|behance|dribbble|medium/i;
-  const portfolioUrl = allUrls.find(u => !skipDomains.test(u));
-  if (portfolioUrl) {
-    extracted.portfolio = portfolioUrl.replace(/[)\]>'"]+$/, '');
+  const skipDomains = /linkedin|github|twitter|x\.com|instagram|facebook|youtube|google|drive\.google|dropbox|onedrive|stackoverflow|behance|dribbble|medium|leetcode|codeforces|codechef/i;
+  
+  // Find all URLs not belonging to standard platforms
+  const genericUrls = allUrls
+    .filter(u => !skipDomains.test(u))
+    .map(u => u.replace(/[)\]>'"]+$/, ''));
+    
+  // Deduplicate URLs
+  const uniqueUrls = [...new Set(genericUrls)];
+
+  if (uniqueUrls.length > 0) {
+    extracted.portfolio = uniqueUrls[0];
     notes.push(`🌐 Portfolio: ${extracted.portfolio}`);
+  }
+  if (uniqueUrls.length > 1) {
+    extracted.project1 = uniqueUrls[1];
+    notes.push(`🚀 Project 1: ${extracted.project1}`);
+  }
+  if (uniqueUrls.length > 2) {
+    extracted.project2 = uniqueUrls[2];
+    notes.push(`🚀 Project 2: ${extracted.project2}`);
+  }
+  if (uniqueUrls.length > 3) {
+    extracted.project3 = uniqueUrls[3];
+    notes.push(`🚀 Project 3: ${extracted.project3}`);
   }
 
 
