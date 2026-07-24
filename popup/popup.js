@@ -421,22 +421,32 @@ function parseResume(text) {
     });
     
   // Deduplicate URLs
-  const uniqueUrls = [...new Set(genericUrls)];
+  let uniqueUrls = [...new Set(genericUrls)];
 
-  if (uniqueUrls.length > 0) {
+  // Try to find the portfolio URL smartly (e.g. contains portfolio, github.io, or .me)
+  const portfolioIndex = uniqueUrls.findIndex(u => /portfolio|github\.io|\.me\b/i.test(u));
+  
+  if (portfolioIndex !== -1) {
+    extracted.portfolio = uniqueUrls[portfolioIndex];
+    notes.push(`🌐 Portfolio: ${extracted.portfolio}`);
+    uniqueUrls.splice(portfolioIndex, 1);
+  } else if (uniqueUrls.length > 0) {
     extracted.portfolio = uniqueUrls[0];
     notes.push(`🌐 Portfolio: ${extracted.portfolio}`);
+    uniqueUrls.shift(); // Remove it so it doesn't get assigned to a project
   }
-  if (uniqueUrls.length > 1) {
-    extracted.project1 = uniqueUrls[1];
+  
+  // Distribute the remaining URLs to Project 1, 2, 3
+  if (uniqueUrls.length > 0) {
+    extracted.project1 = uniqueUrls[0];
     notes.push(`🚀 Project 1: ${extracted.project1}`);
   }
-  if (uniqueUrls.length > 2) {
-    extracted.project2 = uniqueUrls[2];
+  if (uniqueUrls.length > 1) {
+    extracted.project2 = uniqueUrls[1];
     notes.push(`🚀 Project 2: ${extracted.project2}`);
   }
-  if (uniqueUrls.length > 3) {
-    extracted.project3 = uniqueUrls[3];
+  if (uniqueUrls.length > 2) {
+    extracted.project3 = uniqueUrls[2];
     notes.push(`🚀 Project 3: ${extracted.project3}`);
   }
 
