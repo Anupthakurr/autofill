@@ -346,8 +346,8 @@ function parseResume(text) {
 
   // ── URL pre-processing ─────────────────────────────────
   // PDFs sometimes insert spaces inside URLs during text extraction.
-  // Collapse any multi-line URL-like fragments and also normalize the raw text.
-  const cleanText = text.replace(/(https?:\/\/[^\s]+)\s+([\w\-./]+)/g, '$1$2');
+  // Collapse any multi-line URL-like fragments (but don't merge two distinct URLs).
+  const cleanText = text.replace(/(https?:\/\/[^\s]+)\s+(?!https?:\/\/)([\w\-./]+)/gi, '$1$2');
 
   // ── LinkedIn ───────────────────────────────────────────
   const linkedinM = cleanText.match(/linkedin\.com\/in\/([\w%\-]+)/i);
@@ -395,7 +395,10 @@ function parseResume(text) {
   }
 
   // ── Portfolio / Projects ────────────────────────────────
-  const allUrls = cleanText.match(/https?:\/\/[\w\-]+(\.[\w\-]+)+[^\s\)\]>"']*/g) || [];
+  const rawUrls = cleanText.match(/https?:\/\/[^\s\)\]>"']+/g) || [];
+  // Split URLs if they got concatenated together (e.g. url1.com/https://url2.com/)
+  const allUrls = rawUrls.flatMap(url => url.split(/(?=https?:\/\/)/i));
+  
   const skipDomains = /linkedin|github|twitter|x\.com|instagram|facebook|youtube|google|drive\.google|dropbox|onedrive|stackoverflow|behance|dribbble|medium|leetcode|codeforces|codechef/i;
   
   // Find all URLs not belonging to standard platforms
