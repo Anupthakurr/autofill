@@ -397,20 +397,23 @@ function parseResume(text) {
   // ── Portfolio / Projects ────────────────────────────────
   // Catch both https:// URLs and common naked domains (e.g., janedoe.dev).
   // The (?<![@\w\.\-]) lookbehind ensures we don't accidentally extract "gmail.com" out of "user@gmail.com".
-  const urlRegex = /(?<![@\w\.\-])(?:https?:\/\/|www\.)?[\w\-]+\.(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai)(?:\/[\w\-./?=&%#]*[a-zA-Z0-9/])?/gi;
+  // (?:[\w\-]+\.)+ ensures we capture all subdomains (e.g. autocodeai.netlify.app instead of autocodeai.net)
+  // \b ensures we don't stop mid-word (e.g. matching "in" out of "instagram").
+  const urlRegex = /(?<![@\w\.\-])(?:https?:\/\/|www\.)?(?:[\w\-]+\.)+(?:com|net|org|io|dev|me|app|co|site|tech|xyz|in|ai)\b(?:\/[^\s)\]>"']*)?/gi;
   const rawUrls = cleanText.match(urlRegex) || [];
   
   // Split URLs if they got concatenated together (e.g. url1.com/https://url2.com/)
   const allUrls = rawUrls.flatMap(url => url.split(/(?=https?:\/\/)/i));
   
-  // Only skip if the core domain matches one of the known social/platform domains.
-  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|github\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com|gmail\.com|yahoo\.com|outlook\.com|hotmail\.com)/i;
+  // Only skip if the core domain matches one of the known social/platform/email domains.
+  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|github\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com|geeksforgeeks\.org|gmail\.com|yahoo\.com|outlook\.com|hotmail\.com)/i;
   
   // Find all URLs not belonging to standard platforms
   const genericUrls = allUrls
     .filter(u => !skipDomains.test(u))
     .map(u => {
-      let cleaned = u.replace(/[)\]>'"]+$/, '');
+      // Remove any trailing punctuation that might have been matched in the path
+      let cleaned = u.replace(/[.,)\]>'"]+$/, '');
       if (!/^https?:\/\//i.test(cleaned)) {
         cleaned = `https://${cleaned}`;
       }
