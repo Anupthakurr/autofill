@@ -525,30 +525,242 @@ function parseResume(text) {
   return { extracted, notes };
 }
 
-// ── Resume Parser UI ──────────────────────────────────────
+// ── pdf.js worker path (loaded via manifest web_accessible_resources) ──
+try {
+  if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = chrome.runtime.getURL('libs/pdf.worker.min.js');
+  }
+} catch (_) {}
+
+// ── Current uploaded file ──
+let currentFile = null;          // File object
+let currentFileText = null;      // Extracted plain text
+
+// ============================================================
+// FILE READING
+// ============================================================
+
+async function extractTextFromFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'pdf') {
+    return await extractTextFromPdf(file);
+  } else {
+    // .txt and anything else — read as text
+    return await readFileAsText(file);
+  }
+}
+
+async function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = e => resolve(e.target.result);
+    reader.onerror = () => reject(new Error('Could not read file'));
+    reader.readAsText(file, 'utf-8');
+  });
+}
+
+async function extractTextFromPdf(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    throw new Error('PDF.js not loaded — try pasting the text manually.');
+  }
+
+  const arrayBuffer = await file.arrayBuffer();
+  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+
+  const pdf = await loadingTask.promise;
+  const pageTexts = [];
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page    = await pdf.getPage(i);
+    const content = await page.getTextContent();
+
+    // Join items on same line with space, add newline between groups
+    let lastY   = null;
+    let lineStr = '';
+    const lines = [];
+
+    content.items.forEach(item => {
+      if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+        if (lineStr.trim()) lines.push(lineStr.trim());
+        lineStr = '';
+      }
+      lineStr += item.str + ' ';
+      lastY = item.transform[5];
+    });
+    if (lineStr.trim()) lines.push(lineStr.trim());
+
+    pageTexts.push(lines.join('\n'));
+  }
+
+  return pageTexts.join('\n\n');
+}
+
+// ============================================================
+// FILE UPLOAD ZONE
+// ============================================================
+
+function initFileUpload() {
+  const zone      = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('resumeFileInput');
+  const clearBtn  = document.getElementById('fileClearBtn');
+  const parseBtn  = document.getElementById('parseResumeBtn');
+
+  // ── Click anywhere on idle zone to open file picker ──
+  zone.addEventListener('click', e => {
+    if (currentFile) return;          // already has a file, don't re-open
+    if (e.target === clearBtn) return;
+    fileInput.click();
+  });
+
+  // ── Native file input change ──
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) setFile(fileInput.files[0]);
+    fileInput.value = '';             // reset so same file can be re-selected
+  });
+
+  // ── Drag & Drop ──
+  zone.addEventListener('dragenter', e => { e.preventDefault(); });
+  zone.addEventListener('dragover',  e => {
+    e.preventDefault();
+    if (!currentFile) zone.classList.add('jf-drag-over');
+  });
+  zone.addEventListener('dragleave', e => {
+    if (!zone.contains(e.relatedTarget)) zone.classList.remove('jf-drag-over');
+  });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('jf-drag-over');
+    const file = e.dataTransfer?.files[0];
+    if (file) setFile(file);
+  });
+
+  // ── Textarea change — enable button if text is present ──
+  const textarea = document.getElementById('resumeText');
+  textarea?.addEventListener('input', () => {
+    if (!currentFile && textarea.value.trim()) {
+      parseBtn.disabled = false;
+      document.getElementById('parseBtnIcon').textContent = '🔍';
+      document.getElementById('parseBtnText').textContent = 'Parse Text & Extract Data';
+    } else if (!currentFile) {
+      parseBtn.disabled = true;
+      document.getElementById('parseBtnIcon').textContent = '📄';
+      document.getElementById('parseBtnText').textContent = 'Upload a resume to begin';
+    }
+  });
+
+  // ── Clear file ──
+  clearBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    clearFile();
+  });
+}
+
+function setFile(file) {
+  const allowed = ['pdf', 'txt', 'text'];
+  const ext     = file.name.split('.').pop().toLowerCase();
+  if (!allowed.includes(ext)) {
+    showParseResult('err', '⚠️ Unsupported file type. Please upload a PDF or TXT file.');
+    return;
+  }
+
+  currentFile     = file;
+  currentFileText = null;
+
+  const zone = document.getElementById('uploadZone');
+  zone.classList.add('jf-has-file');
+
+  document.getElementById('fileTypeIcon').textContent = ext === 'pdf' ? '📄' : '📝';
+  document.getElementById('fileName').textContent     = file.name;
+  document.getElementById('fileSize').textContent     = formatBytes(file.size);
+
+  const parseBtn = document.getElementById('parseResumeBtn');
+  parseBtn.disabled = false;
+  document.getElementById('parseBtnIcon').textContent = '🔍';
+  document.getElementById('parseBtnText').textContent = 'Parse Resume & Extract Data';
+
+  // Clear previous result
+  const res = document.getElementById('parseResult');
+  res.style.display = 'none';
+}
+
+function clearFile() {
+  currentFile     = null;
+  currentFileText = null;
+
+  const zone = document.getElementById('uploadZone');
+  zone.classList.remove('jf-has-file');
+
+  const parseBtn = document.getElementById('parseResumeBtn');
+  parseBtn.disabled = true;
+  document.getElementById('parseBtnIcon').textContent = '📄';
+  document.getElementById('parseBtnText').textContent = 'Upload a resume to begin';
+
+  const res = document.getElementById('parseResult');
+  res.style.display = 'none';
+}
+
+function formatBytes(bytes) {
+  if (bytes < 1024)       return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+// ============================================================
+// RESUME PARSER UI
+// ============================================================
 
 function initResumeParser() {
-  document.getElementById('parseResumeBtn').addEventListener('click', async () => {
-    const text = document.getElementById('resumeText').value;
+  initFileUpload();
 
-    if (!text.trim()) {
-      showParseResult('err', '⚠️ Paste your resume text first, then click Parse.');
+  document.getElementById('parseResumeBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('parseResumeBtn');
+
+    // Determine source: uploaded file first, textarea fallback
+    let rawText = '';
+    if (currentFile) {
+      btn.disabled = true;
+      document.getElementById('parseBtnIcon').innerHTML = '<span class="jf-spin">⏳</span>';
+      document.getElementById('parseBtnText').textContent =
+        currentFile.name.toLowerCase().endsWith('.pdf')
+          ? 'Extracting text from PDF…'
+          : 'Reading file…';
+
+      try {
+        rawText = currentFileText || await extractTextFromFile(currentFile);
+        currentFileText = rawText;   // cache so re-parse is instant
+      } catch (err) {
+        btn.disabled = false;
+        document.getElementById('parseBtnIcon').textContent = '⚠️';
+        document.getElementById('parseBtnText').textContent = 'Failed to read file';
+        showParseResult('err', `⚠️ ${err.message}`);
+        setTimeout(() => {
+          document.getElementById('parseBtnIcon').textContent = '🔍';
+          document.getElementById('parseBtnText').textContent = 'Parse Resume & Extract Data';
+          btn.disabled = false;
+        }, 3000);
+        return;
+      }
+    } else {
+      // Fallback: textarea
+      rawText = document.getElementById('resumeText')?.value || '';
+    }
+
+    if (!rawText.trim()) {
+      showParseResult('err', '⚠️ No content to parse. Upload a file or paste text manually.');
       return;
     }
 
-    // Loading state
-    const btn = document.getElementById('parseResumeBtn');
+    // Parsing state
     btn.disabled = true;
     document.getElementById('parseBtnIcon').innerHTML = '<span class="jf-spin">⏳</span>';
     document.getElementById('parseBtnText').textContent = 'Parsing…';
 
-    await new Promise(r => setTimeout(r, 500)); // slight delay for UX
+    await new Promise(r => setTimeout(r, 400));
 
-    const { extracted, notes } = parseResume(text);
+    const { extracted, notes } = parseResume(rawText);
 
-    // Apply extracted data
     let appliedCount = 0;
-
     for (const [key, value] of Object.entries(extracted)) {
       if (key === 'skills') {
         const newOnes = value.filter(s => !skills.some(cs => cs.toLowerCase() === s.toLowerCase()));
@@ -560,7 +772,6 @@ function initResumeParser() {
         const el = document.getElementById(key);
         if (el && value) {
           el.value = String(value).trim();
-          // Green flash
           el.style.transition = 'border-color 0.3s ease';
           el.style.borderColor = '#10b981';
           setTimeout(() => { el.style.borderColor = ''; }, 3000);
@@ -574,7 +785,7 @@ function initResumeParser() {
     document.getElementById('parseBtnIcon').textContent = appliedCount > 0 ? '✅' : '⚠️';
     document.getElementById('parseBtnText').textContent = appliedCount > 0
       ? `Extracted ${appliedCount} fields!`
-      : 'Could not extract much — try more text';
+      : 'Could not extract much — try a different file';
 
     setTimeout(() => {
       document.getElementById('parseBtnIcon').textContent = '🔍';
@@ -583,13 +794,13 @@ function initResumeParser() {
 
     if (notes.length > 0 && appliedCount > 0) {
       showParseResult('ok', `<strong>✨ Extracted ${appliedCount} fields:</strong><br>${notes.join('<br>')}`);
-      // Navigate to Personal tab to show filled fields
       document.querySelector('[data-tab="personal"]')?.click();
     } else {
-      showParseResult('err', '⚠️ Couldn\'t find much. Make sure you pasted the full resume text (not a link).');
+      showParseResult('err', "⚠️ Couldn't find much. Try a cleaner PDF or the TXT version of your resume.");
     }
   });
 }
+
 
 function showParseResult(type, html) {
   const el = document.getElementById('parseResult');

@@ -234,17 +234,45 @@
           <span class="jf-parser-icon">🔍</span>
           <div>
             <strong>Resume Parser</strong>
-            <p>Paste your resume text to auto-populate all fields</p>
+            <p>Upload your resume — fields are filled automatically</p>
           </div>
         </div>
-        <textarea
-          id="resumeText"
-          rows="7"
-          placeholder="Paste your resume text here…&#10;&#10;Tip: Open your PDF, press Ctrl+A then Ctrl+C, then paste here."
-        ></textarea>
-        <button class="jf-parse-btn" id="parseResumeBtn">
-          <span id="parseBtnIcon">🔍</span>
-          <span id="parseBtnText">Parse Resume &amp; Extract Data</span>
+
+        <!-- ── File Upload Zone ── -->
+        <div class="jf-upload-zone" id="uploadZone">
+          <input type="file" id="resumeFileInput" accept=".pdf,.txt" hidden />
+
+          <!-- idle state -->
+          <div class="jf-upload-idle" id="uploadIdle">
+            <span class="jf-upload-big-icon">📄</span>
+            <p class="jf-upload-title">Drop your resume here</p>
+            <p class="jf-upload-sub">PDF or TXT &nbsp;·&nbsp; Click anywhere to browse</p>
+          </div>
+
+          <!-- file selected state -->
+          <div class="jf-file-selected" id="fileSelected">
+            <span class="jf-file-type-icon" id="fileTypeIcon">📄</span>
+            <div class="jf-file-meta">
+              <span class="jf-file-name" id="fileName">—</span>
+              <span class="jf-file-size" id="fileSize"></span>
+            </div>
+            <button class="jf-file-clear" id="fileClearBtn" title="Remove file">✕</button>
+          </div>
+        </div>
+
+        <!-- Paste fallback (collapsed by default) -->
+        <details class="jf-paste-details" id="pasteDetails">
+          <summary>Or paste resume text manually</summary>
+          <textarea
+            id="resumeText"
+            rows="6"
+            placeholder="Paste your resume text here…&#10;Tip: Open your PDF, Ctrl+A, Ctrl+C, then paste."
+          ></textarea>
+        </details>
+
+        <button class="jf-parse-btn" id="parseResumeBtn" disabled>
+          <span id="parseBtnIcon">📄</span>
+          <span id="parseBtnText">Upload a resume to begin</span>
         </button>
         <div class="jf-parse-result" id="parseResult"></div>
       </div>
@@ -267,6 +295,7 @@
     <button class="jf-save-btn" id="saveBtn">💾 Save Profile</button>
   </footer>
 
+  <script src="../libs/pdf.min.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

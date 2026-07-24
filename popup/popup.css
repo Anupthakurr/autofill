@@ -538,6 +538,176 @@ html, body {
 
 .jf-divider { height: 1px; background: var(--border); margin: 14px 0; }
 
+/* ── File Upload Zone ────────────────────────────────────── */
+
+.jf-upload-zone {
+  position: relative;
+  border: 2px dashed var(--border);
+  border-radius: var(--r-md);
+  background: var(--input-bg);
+  cursor: pointer;
+  transition: var(--ease);
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+.jf-upload-zone:hover,
+.jf-upload-zone.jf-drag-over {
+  border-color: var(--pri);
+  background: rgba(99, 102, 241, 0.06);
+}
+
+.jf-upload-zone.jf-drag-over {
+  box-shadow: 0 0 0 3px var(--glow);
+  transform: scale(1.01);
+}
+
+.jf-upload-idle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.jf-upload-big-icon {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 6px;
+  animation: jf-float 3s ease-in-out infinite;
+}
+
+@keyframes jf-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-5px); }
+}
+
+.jf-upload-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--txt1);
+}
+
+.jf-upload-sub {
+  font-size: 11px;
+  color: var(--txt3);
+  margin-top: 2px;
+}
+
+/* File selected state */
+.jf-file-selected {
+  display: none;          /* shown by JS */
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(16, 185, 129, 0.07);
+  border-radius: calc(var(--r-md) - 2px);
+}
+
+.jf-file-selected.jf-show {
+  display: flex;
+}
+
+.jf-file-type-icon { font-size: 22px; flex-shrink: 0; }
+
+.jf-file-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.jf-file-name {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--txt1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.jf-file-size {
+  display: block;
+  font-size: 11px;
+  color: var(--txt3);
+  margin-top: 1px;
+}
+
+.jf-file-clear {
+  background: none;
+  border: none;
+  color: var(--txt3);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  transition: var(--ease);
+  line-height: 1;
+}
+
+.jf-file-clear:hover { color: var(--danger); background: var(--danger-dim); }
+
+/* Upload zone hidden idle when file is selected */
+.jf-upload-zone.jf-has-file .jf-upload-idle  { display: none; }
+.jf-upload-zone.jf-has-file .jf-file-selected { display: flex; }
+.jf-upload-zone.jf-has-file { border-style: solid; border-color: rgba(16,185,129,.4); cursor: default; }
+
+/* ── Paste Fallback (collapsible) ────────────────────────── */
+
+.jf-paste-details {
+  margin-bottom: 10px;
+}
+
+.jf-paste-details summary {
+  font-size: 11.5px;
+  color: var(--txt3);
+  cursor: pointer;
+  user-select: none;
+  padding: 5px 2px;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.15s;
+}
+
+.jf-paste-details summary::before {
+  content: '▶';
+  font-size: 8px;
+  transition: transform 0.2s;
+}
+
+.jf-paste-details[open] summary::before { transform: rotate(90deg); }
+
+.jf-paste-details summary:hover { color: var(--txt2); }
+
+.jf-paste-details textarea {
+  margin-top: 8px;
+  width: 100%;
+  padding: 10px 11px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  color: var(--txt1);
+  font-size: 12px;
+  font-family: 'SF Mono', Consolas, 'Courier New', monospace;
+  resize: vertical;
+  min-height: 100px;
+  outline: none;
+  transition: var(--ease);
+  line-height: 1.55;
+}
+
+.jf-paste-details textarea:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--glow);
+}
+
+.jf-paste-details textarea::placeholder { color: var(--txt3); font-family: inherit; }
+
+
 /* ── Footer ──────────────────────────────────────────────── */
 
 .jf-footer {
