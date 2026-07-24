@@ -343,63 +343,79 @@ function parseResume(text) {
     notes.push(`📱 Phone: ${phoneM[0].trim()}`);
   }
 
+  // ── URL pre-processing ─────────────────────────────────
+  // PDFs sometimes insert spaces inside URLs during text extraction.
+  // Collapse any multi-line URL-like fragments and also normalize the raw text.
+  const cleanText = text.replace(/(https?:\/\/[^\s]+)\s+([\w\-./]+)/g, '$1$2');
+
   // ── LinkedIn ───────────────────────────────────────────
-  const linkedinM = text.match(/linkedin\.com\/in\/([\w\-]+)/i);
+  const linkedinM = cleanText.match(/linkedin\.com\/in\/([\w%\-]+)/i);
   if (linkedinM) {
-    extracted.linkedin = `https://linkedin.com/in/${linkedinM[1]}`;
+    extracted.linkedin = `https://www.linkedin.com/in/${linkedinM[1]}`;
     notes.push(`🔵 LinkedIn: linkedin.com/in/${linkedinM[1]}`);
   }
 
   // ── GitHub ─────────────────────────────────────────────
-  const githubM = text.match(/github\.com\/([\w\-]+)/i);
-  if (githubM && githubM[1].toLowerCase() !== 'sponsors' && githubM[1].toLowerCase() !== 'orgs') {
+  const githubM = cleanText.match(/github\.com\/([\w\-]+)/i);
+  const githubSkip = new Set(['sponsors','orgs','marketplace','features','about','login','signup','pricing']);
+  if (githubM && !githubSkip.has(githubM[1].toLowerCase())) {
     extracted.github = `https://github.com/${githubM[1]}`;
     notes.push(`⚫ GitHub: github.com/${githubM[1]}`);
   }
 
   // ── Twitter / X ────────────────────────────────────────
-  const twitterM = text.match(/(?:twitter\.com\/|x\.com\/)([\w]+)/i);
-  if (twitterM) {
+  const twitterM = cleanText.match(/(?:twitter\.com\/|x\.com\/)([\w]+)/i);
+  if (twitterM && !['home','explore','search','login','i'].includes(twitterM[1].toLowerCase())) {
     extracted.twitter = `https://twitter.com/${twitterM[1]}`;
     notes.push(`🐦 Twitter: @${twitterM[1]}`);
   }
 
   // ── Stack Overflow ─────────────────────────────────────
-  const soM = text.match(/stackoverflow\.com\/users\/([\d]+(?:\/[\w\-]+)?)/i);
+  const soM = cleanText.match(/stackoverflow\.com\/users\/([\d]+(?:\/[\w\-]+)?)/i);
   if (soM) {
     extracted.stackoverflow = `https://stackoverflow.com/users/${soM[1]}`;
     notes.push(`🟠 Stack Overflow found`);
   }
 
   // ── Behance ────────────────────────────────────────────
-  const behanceM = text.match(/behance\.net\/([\w\-]+)/i);
+  const behanceM = cleanText.match(/behance\.net\/([\w\-]+)/i);
   if (behanceM) {
     extracted.behance = `https://behance.net/${behanceM[1]}`;
     notes.push(`🔷 Behance: behance.net/${behanceM[1]}`);
   }
 
   // ── Dribbble ───────────────────────────────────────────
-  const dribbbleM = text.match(/dribbble\.com\/([\w\-]+)/i);
+  const dribbbleM = cleanText.match(/dribbble\.com\/([\w\-]+)/i);
   if (dribbbleM) {
     extracted.dribbble = `https://dribbble.com/${dribbbleM[1]}`;
     notes.push(`🎀 Dribbble: dribbble.com/${dribbbleM[1]}`);
   }
 
   // ── Medium / Blog ──────────────────────────────────────
-  const mediumM = text.match(/medium\.com\/@?([\w\-]+)/i);
+  const mediumM = cleanText.match(/medium\.com\/@?([\w\-]+)/i);
   if (mediumM) {
     extracted.medium = `https://medium.com/@${mediumM[1]}`;
     notes.push(`✍️ Medium: @${mediumM[1]}`);
   }
 
+  // ── Resume / Document link (Google Drive, Dropbox, OneDrive, etc.) ──
+  const resumeLinkM = cleanText.match(
+    /https?:\/\/(?:drive\.google\.com\/file\/d\/[^\s"'>]+|docs\.google\.com\/[^\s"'>]+|dropbox\.com\/s\/[^\s"'>]+|1drv\.ms\/[^\s"'>]+|onedrive\.live\.com\/[^\s"'>]+)/i
+  );
+  if (resumeLinkM) {
+    extracted.resumeUrl = resumeLinkM[0].replace(/[)\]>'"]+$/, '');
+    notes.push(`📎 Resume link: ${extracted.resumeUrl.slice(0, 50)}…`);
+  }
+
   // ── Portfolio / Personal Website ────────────────────────
-  const allUrls = text.match(/https?:\/\/[\w\-]+(\.[\w\-]+)+[^\s\)\]>"']*/g) || [];
-  const skipDomains = /linkedin|github|twitter|x\.com|instagram|facebook|youtube|google|drive\.google|dropbox|stackoverflow|behance|dribbble|medium/i;
+  const allUrls = cleanText.match(/https?:\/\/[\w\-]+(\.[\w\-]+)+[^\s\)\]>"']*/g) || [];
+  const skipDomains = /linkedin|github|twitter|x\.com|instagram|facebook|youtube|google|drive\.google|dropbox|onedrive|stackoverflow|behance|dribbble|medium/i;
   const portfolioUrl = allUrls.find(u => !skipDomains.test(u));
   if (portfolioUrl) {
-    extracted.portfolio = portfolioUrl;
-    notes.push(`🌐 Portfolio: ${portfolioUrl}`);
+    extracted.portfolio = portfolioUrl.replace(/[)\]>'"]+$/, '');
+    notes.push(`🌐 Portfolio: ${extracted.portfolio}`);
   }
+
 
   // ── Name ───────────────────────────────────────────────
   const nameSkip = [/@/, /\d{3}/, /http/i, /linkedin/i, /github/i, /^[+\d]/, /\|/, /[,;@#]/, /^[A-Z]{2,4}$/, /^\d/, /resume/i, /curriculum/i];
@@ -565,17 +581,16 @@ async function extractTextFromPdf(file) {
     throw new Error('PDF.js not loaded — try pasting the text manually.');
   }
 
-  const arrayBuffer = await file.arrayBuffer();
-  const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-
-  const pdf = await loadingTask.promise;
-  const pageTexts = [];
+  const arrayBuffer    = await file.arrayBuffer();
+  const pdf            = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pageTexts      = [];
+  const annotationUrls = [];   // URLs collected from PDF hyperlinks
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page    = await pdf.getPage(i);
     const content = await page.getTextContent();
 
-    // Join items on same line with space, add newline between groups
+    // Reconstruct readable lines from PDF text items
     let lastY   = null;
     let lineStr = '';
     const lines = [];
@@ -589,12 +604,33 @@ async function extractTextFromPdf(file) {
       lastY = item.transform[5];
     });
     if (lineStr.trim()) lines.push(lineStr.trim());
-
     pageTexts.push(lines.join('\n'));
+
+    // Also collect URLs from PDF annotation (hyperlink) layer.
+    // LinkedIn, GitHub, portfolio URLs are almost always stored as
+    // clickable hyperlinks inside the PDF — not as visible plain text.
+    // getAnnotations() exposes those actual destination URLs.
+    try {
+      const annotations = await page.getAnnotations();
+      annotations.forEach(ann => {
+        const url = ann.url || (ann.action && ann.action.URI) || '';
+        if (url && /^https?:\/\//i.test(url)) {
+          annotationUrls.push(url.trim());
+        }
+      });
+    } catch (_) { /* non-critical */ }
+  }
+
+  // Append de-duplicated hyperlinks to the extracted text blob so
+  // parseResume() regexes can match them alongside visible text.
+  if (annotationUrls.length > 0) {
+    const unique = [...new Set(annotationUrls)];
+    pageTexts.push('\n\n--- PDF hyperlinks ---\n' + unique.join('\n'));
   }
 
   return pageTexts.join('\n\n');
 }
+
 
 // ============================================================
 // FILE UPLOAD ZONE
