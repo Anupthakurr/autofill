@@ -406,7 +406,8 @@ function parseResume(text) {
   const allUrls = rawUrls.flatMap(url => url.split(/(?=https?:\/\/)/i));
   
   // Only skip if the core domain matches one of the known social/platform/email domains.
-  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|github\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com|geeksforgeeks\.org|gmail\.com|yahoo\.com|outlook\.com|hotmail\.com)/i;
+  // Note: github.com is NOT skipped here so that GitHub repo links can be extracted as projects!
+  const skipDomains = /^(?:https?:\/\/)?(?:www\.)?(linkedin\.com|twitter\.com|x\.com|instagram\.com|facebook\.com|youtube\.com|google\.com|drive\.google\.com|dropbox\.com|onedrive\.live\.com|stackoverflow\.com|behance\.net|dribbble\.com|medium\.com|leetcode\.com|codeforces\.com|codechef\.com|geeksforgeeks\.org|gmail\.com|yahoo\.com|outlook\.com|hotmail\.com)/i;
   
   // Find all URLs not belonging to standard platforms
   const genericUrls = allUrls
@@ -418,6 +419,11 @@ function parseResume(text) {
         cleaned = `https://${cleaned}`;
       }
       return cleaned;
+    })
+    .filter(u => {
+      // Filter out the exact GitHub profile URL (so we only keep repos)
+      const githubProfile = extracted.github ? extracted.github.toLowerCase() : '';
+      return u.toLowerCase() !== githubProfile;
     });
     
   // Deduplicate URLs
